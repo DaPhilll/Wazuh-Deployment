@@ -7,8 +7,8 @@ This project provides a step-by-step guide to deploy Wazuh, an open-source secur
 ### Skills Learned
 
 -   Virtual machine creation and configuration using Oracle VirtualBox.
--   Linux server administration, including package management and firewall configuration (UFW).
--   Wazuh server installation and configuration, encompassing server, indexer (OpenSearch), and dashboard (OpenSearch Dashboards).
+-   Linux server administration, including package management and firewall configuration.
+-   Wazuh server installation and configuration, encompassing server, indexer, and dashboard.
 -   Windows 10 agent installation and configuration for endpoint monitoring.
 -   Network configuration, specifically bridged networking for virtual machines.
 -   Firewall rule management on both Linux and Windows platforms.
