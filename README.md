@@ -1,4 +1,4 @@
-# Wazuh-Deployment
+# Security Information and Event Management with Wazuh
 
 ## Objective
 
