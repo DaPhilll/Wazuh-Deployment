@@ -111,7 +111,7 @@ This project provides a step-by-step guide to deploy Wazuh, an open-source secur
 2.  Download the Wazuh agent installer:
 
     ```powershell
-    Invoke-WebRequest -Uri "[https://packages.wazuh.com/4.x/windows/wazuh-agent-4.x-1.msi](https://packages.wazuh.com/4.x/windows/wazuh-agent-4.x-1.msi)" -OutFile "wazuh-agent.msi"
+    Invoke-WebRequest -Uri "[https://packages.wazuh.com/4.x/windows/wazuh-agent-4.11-1.msi](https://packages.wazuh.com/4.x/windows/wazuh-agent-4.x-1.msi)" -OutFile "wazuh-agent.msi"
     ```
 
 3.  Install the agent (replace `<wazuh_server_ip>`):
