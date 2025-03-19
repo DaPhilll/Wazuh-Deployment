@@ -143,3 +143,36 @@ This project provides a step-by-step guide to deploy Wazuh, an open-source secur
 
 * **Agent not appearing:** Verify IP addresses and firewall rules on both machines.
 * **Wazuh dashboard not accessible:** Check network connectivity and firewall settings.
+
+## Reference Visuals: Wazuh Deployment and Monitoring
+
+*Ref 1:*
+![Wazuh Dashboard](https://github.com/user-attachments/assets/dff76b31-b4c0-4298-94f7-7a9f7eed5835)
+*Ref 1: This screenshot captures the main overview dashboard of the Wazuh SIEM platform. It provides a high-level snapshot of the system's security status.*
+
+<br/>
+<br/>
+
+*Ref 2:*
+![Wazuh Endpoints](https://github.com/user-attachments/assets/666d3c01-f6ac-45fe-8baf-6325337873d0)
+*Ref 2: This screenshot displays the "Agents" section of the Wazuh dashboard.*
+
+<br/>
+<br/>
+
+*Ref 3:*
+![Wazuh Endpoint-1](https://github.com/user-attachments/assets/6bba044c-a186-40cd-8470-9ba0a3fe980c)
+*Ref 3: This screenshot displays the detailed view of a specific Wazuh agent. It provides in-depth information about the agent's status, configuration, and security metrics.*
+
+<br/>
+<br/>
+
+*Ref 4:*
+![Wazuh Endpoint-2](https://github.com/user-attachments/assets/5be64d54-cff8-4618-b5f5-f9f454bb880a)
+*Ref 4: This screenshot presents the vulnerability detection dashboard for this agent. It offers a detailed overview of the agent's vulnerabilities, categorized by severity and other relevant metrics.*
+
+<br/>
+<br/>
+
+
+
