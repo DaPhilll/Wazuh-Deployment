@@ -174,5 +174,9 @@ This project provides a step-by-step guide to deploy Wazuh, an open-source secur
 <br/>
 <br/>
 
+*Ref 5:*
+![Windows10-Wazuh Install](https://github.com/user-attachments/assets/50bc447c-509f-4e94-8fd5-6ee94e93f4a3)
+*Ref 5: This screenshot captures the PowerShell script to download the Wazuh agent installer from the Wazuh package repository and then executes the installer with specific parameters for the Wazuh manager, agent group, and agent name.*
+
 
 
