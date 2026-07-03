@@ -132,3 +132,6 @@ sudo ufw allow 5601/tcp     # Cryptographic Web Dashboard UI Access
 ### Unattended Telemetry Injection Execution
 ![Windows10-Wazuh Install](https://github.com/user-attachments/assets/50bc447c-509f-4e94-8fd5-6ee94e93f4a3)
 *Figure 5: Elevated command execution interface deploying the telemetry forwarding agent package quietly from the administrative plane while appending strict registration criteria.*
+
+<br><br><br>
+[![Darreon Phillips Homepage](https://img.shields.io/badge/Darreon%20Phillips-Homepage-blue?style=for-the-badge&logo=github&logoColor=white)](https://github.com/DaPhilll)
