@@ -1,4 +1,4 @@
-[![Return to Portfolio](https://img.shields.io/badge/Return%20To-Portfolio%20Homepage-black?style=flat-square&logo=github)](https://github.com/DaPhilll)
+[![Darreon Phillips Homepage](https://img.shields.io/badge/Darreon%20Phillips-Homepage-blue?style=for-the-badge&logo=github&logoColor=white)](https://github.com/DaPhilll)
 
 # Centralized SIEM/XDR Engineering: Multi-Platform Telemetry Aggregation and Detection Engineering with Wazuh
 
