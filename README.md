@@ -3,64 +3,60 @@
 # Centralized SIEM/XDR Engineering: Multi-Platform Telemetry Aggregation and Detection Engineering with Wazuh
 
 ## 1. Executive Summary & Objective
-* **Problem Statement:** Enterprise environments frequently suffer from visibility gaps and alert fatigue due to unoptimized telemetry streams, making it difficult to isolate high-fidelity indicators of compromise from routine system operations.
-* **Solution Overview:** This project establishes a complete detection engineering loop by deploying a hardened central Wazuh (v4.11) management plane, configuring automated endpoint telemetry forwarding over an isolated network topology, simulating active adversary behaviors, and authoring custom rule overrides to optimize log ingestion.
-* **Core Capabilities:** 
-  * Provisioning segmented architecture with stateful transport-layer access controls.
-  * Headless administrative deployment of host-based security agents.
-  * Behavioral threat simulation mapping to enterprise security event logs.
-  * Continuous vulnerability lifecycle assessment and detection logic optimization.
+* **Problem Statement:** Enterprise environments suffer from visibility gaps and alert fatigue when telemetry streams go untuned, making it hard to separate high-fidelity indicators of compromise from routine system activity.
+* **Solution Overview:** This project builds a full detection engineering loop: a central Wazuh (v4.11) management plane, automated endpoint telemetry forwarding across an isolated network, simulated adversary behavior, and custom rule overrides to reduce ingestion noise.
+* **Core Capabilities:**
+  * Segmented network architecture with stateful transport-layer access controls.
+  * Headless deployment of host-based security agents.
+  * Behavioral threat simulation mapped to Windows security event logs.
+  * Continuous vulnerability assessment and detection logic tuning.
 
 ## 2. Architecture & Environment Topology
-The infrastructure leverages hardware-level virtualization with discrete layer-2 broadcast domains to simulate an on-premises enterprise environment.
+The lab uses hardware-level virtualization with a discrete layer-2 broadcast domain to model an on-premises enterprise network. This same environment is reused across the related detection, SOAR, IDS, and vulnerability management projects.
 
 * **Deployment Environment:** Oracle VirtualBox
-* **Management Plane:** Ubuntu Server Node (Dedicated 8 GB RAM, localized indexing storage volume)
-* **Endpoint Telemetry:** Windows 10 Enterprise (8 GB RAM)
-* **Network Design:** Bridged network adapter configuration to ensure independent routing capabilities, restricted by host-based firewalls.
-* **SIEM / XDR Core:** Wazuh Manager & Indexer (v4.11) integrated with OpenSearch Dashboards for visualization and analytics querying.
+* **Network Segment:** `10.10.0.0/24` (bridged adapter, host-firewall restricted)
+* **Management Plane:** Ubuntu Server — `SRV-SOC01` (8 GB RAM, local indexing volume)
+* **Endpoint:** Windows 10 Enterprise — `WKSTN-01` (8 GB RAM)
+* **Domain Controller:** Windows Server — `SRV-DC01`
+* **SIEM/XDR Core:** Wazuh Manager & Indexer (v4.11) with OpenSearch Dashboards
 
 ## 3. Engineering Thought Process & Methodology
-* **Design Considerations:** A bridged adapter network pattern was implemented to allow direct layer-2 line of sight between the endpoint and the SIEM master node, ensuring authentic transport-layer interaction. Wazuh was selected to demonstrate a unified solution for log aggregation, compliance tracking, and active endpoint detection.
+* **Design Considerations:** A bridged adapter gives direct layer-2 line of sight between the endpoints and the Wazuh manager, producing authentic transport-layer interaction. Wazuh was selected as a unified platform for log aggregation, compliance tracking, and active endpoint detection.
 * **Technical Challenges & Resolution:**
-  * **Challenge:** High-frequency, routine system process creations triggered default alert rule 60107, resulting in substantial log noise and false-positive inflation within the indexing volume.
-  * **Resolution:** Evaluated raw JSON telemetry to identify standard operational baselines. Authored a custom rule override in `local_rules.xml` targeting parent process execution paths for known `SYSTEM` accounts, yielding a 12% reduction in total baseline ingestion noise.
+  * **Challenge:** High-frequency routine process creation triggered default rule 60107, inflating log volume with false positives.
+  * **Resolution:** Analyzed raw JSON telemetry to establish an operational baseline, then authored a custom override in `local_rules.xml` targeting parent process paths for known `SYSTEM` accounts, reducing baseline ingestion noise in the lab environment.
 
 ## 4. Cyber Kill Chain & Threat Lifecycle Mapping
-This project actively monitors, logs, and triggers alerting mechanisms across the following phases of the Cyber Kill Chain:
-
-* **Delivery:** Simulated malicious indicator delivery via target download methods to validate host-based anti-malware telemetry capture.
-* **Actions on Objectives:** Generated rapid, concurrent authentication failures to simulate brute-force credential harvesting and validate multi-event correlation logic.
+* **Delivery:** Simulated malicious indicator delivery via download methods to validate host anti-malware telemetry capture.
+* **Actions on Objectives:** Generated concurrent authentication failures to simulate brute-force credential access and validate multi-event correlation.
 
 ## 5. MITRE ATT&CK Matrix Alignment
-The configurations and adversary emulations built into this project map directly to the following tactics and techniques:
 
-| Tactic | Technique ID | Technique Name | Detection/Mitigation Mechanism |
+| Tactic | Technique ID | Technique Name | Detection Mechanism |
 | :--- | :--- | :--- | :--- |
-| **Credential Access** | T1110 | Brute Force | Aggregation of Windows Security Event ID 4625; correlated via Wazuh Rule ID 60122 (Level 5 Alert). |
-| **Execution** | T1204.002 | Malicious File | Real-time parsing of Windows Defender Antivirus event channels via Rule ID 61603 to expose payload string paths. |
-| **Defense Evasion** | T1562.004 | Disable or Modify System Firewall | Hardening transport layers via stateful host firewalls (UFW and Windows Defender Advanced Security) on port 1514. |
+| **Credential Access** | T1110 | Brute Force | Aggregation of Windows Event ID 4625, correlated via Wazuh Rule ID 60122 (Level 5). |
+| **Execution** | T1204.002 | Malicious File | Parsing Windows Defender event channels via Rule ID 61603 to expose payload paths. |
+| **Defense Evasion** | T1562.004 | Disable or Modify System Firewall | Stateful host firewalls (UFW, Windows Defender Firewall) enforced on port 1514. |
 
 ## 6. Telemetry & Vulnerability Intelligence Integrated
-* **Tool Name:** Wazuh Vulnerability Detector Engine
-  * **Use Case:** Automated software asset inventory auditing to cross-reference installed endpoint application footprints against live CVE indexes.
-  * **Artifacts Gathered:** Granular mapping of system vulnerabilities classified by systemic risk ratings and outstanding patch definitions.
+* **Wazuh Vulnerability Detector:** Automated software inventory auditing that cross-references installed endpoint applications against CVE indexes, classifying findings by risk rating and outstanding patch state.
 
-## 7. Implementation & Code / Configuration Snippets
+## 7. Implementation & Configuration
 
-### Headless Telemetry Agent Injection (PowerShell)
+### Headless Agent Deployment (PowerShell)
 ```powershell
-# Programmatically retrieve the verified deployment package from the cloud repository
-Invoke-WebRequest -Uri "[https://packages.wazuh.com/4.11/windows/wazuh-agent-4.11-1.msi](https://packages.wazuh.com/4.11/windows/wazuh-agent-4.11-1.msi)" -OutFile "wazuh-agent.msi"
+# Retrieve the deployment package
+Invoke-WebRequest -Uri "https://packages.wazuh.com/4.11/windows/wazuh-agent-4.11-1.msi" -OutFile "wazuh-agent.msi"
 
-# Execute a silent background installation appending structural management plane criteria
-msiexec /i "wazuh-agent.msi" /quiet SERVERIP="<wazuh_server_ip>" SERVERPORT="1514"
+# Silent install with management plane parameters
+msiexec /i "wazuh-agent.msi" /quiet SERVERIP="10.10.0.10" SERVERPORT="1514"
 
-# Initialize the telemetry tracking service lifecycle hook
+# Start the agent service
 Start-Service WazuhSvc
 ```
 
-### Detection Engineering: Custom XML Tuning Rule (`/var/ossec/etc/rules/local_rules.xml`)
+### Custom Tuning Rule (`/var/ossec/etc/rules/local_rules.xml`)
 ```xml
 <group name="windows,security_tuning,">
   <!-- Override baseline rule 60107 for known service accounts -->
@@ -68,46 +64,43 @@ Start-Service WazuhSvc
     <if_sid>60107</if_sid>
     <field name="win.eventdata.subjectUserName">SYSTEM</field>
     <field name="win.eventdata.parentProcessName">C:\\Windows\\System32\\services.exe</field>
-    <description>Tuning: Suppress routine SYSTEM-level background service initializations to optimize ingestion volumes.</description>
+    <description>Tuning: Suppress routine SYSTEM-level service initializations to reduce ingestion volume.</description>
   </rule>
 </group>
 ```
 
-### Stateful Host Network Hardening (Ubuntu Management Plane)
+### Host Network Hardening (Ubuntu Management Plane)
 ```bash
-# Initialize the stateful firewall configuration
 sudo ufw enable
-
-# Apply strict transport layer ingress controls for secure infrastructure interaction
-sudo ufw allow 1514/udp     # Telemetry Ingestion Vector
-sudo ufw allow 1514/tcp     # Telemetry Ingestion Vector
-sudo ufw allow 1515/tcp     # Secure Agent Registration Interface
-sudo ufw allow 55000/tcp    # Cluster REST API Core Management
-sudo ufw allow 9200/tcp     # Underlying Indexer API Loop
-sudo ufw allow 5601/tcp     # Cryptographic Web Dashboard UI Access
+sudo ufw allow 1514/udp     # Telemetry ingestion
+sudo ufw allow 1514/tcp     # Telemetry ingestion
+sudo ufw allow 1515/tcp     # Agent registration
+sudo ufw allow 55000/tcp    # REST API management
+sudo ufw allow 9200/tcp     # Indexer API
+sudo ufw allow 5601/tcp     # Web dashboard
 ```
 
-## 8. Operational Verification & Validation (Proof of Concept)
+## 8. Operational Verification & Validation
 
-### Use Case 1: Brute-Force Authentication Emulation (T1110)
-* **Attack Vector Simulation:** Executed rapid authentication loops using non-existent credentials via the command line interface:
+### Use Case 1: Brute-Force Authentication (T1110)
+* **Simulation:** Executed rapid authentication attempts with invalid credentials:
   ```cmd
   net use \\localhost /user:fakeuser invalidpassword123
   ```
-* **SIEM Verification:** The management plane successfully correlated the burst of Event ID 4625 entries, parsing the malicious activity and escalating it to a Level 5 security alert under Rule ID 60122.
+* **Verification:** The manager correlated the burst of Event ID 4625 entries and escalated to a Level 5 alert under Rule ID 60122.
 
-### Use Case 2: Malicious Indicator Drop via EICAR String (T1204.002)
-* **Attack Vector Simulation:** Injected the standard, non-malicious anti-malware test string into local storage using administrative PowerShell:
+### Use Case 2: Malicious Indicator Drop via EICAR (T1204.002)
+* **Simulation:** Wrote the standard EICAR anti-malware test string to local storage:
   ```powershell
   Set-Content -Path "C:\Users\Public\eicar_test.txt" -Value 'X5O!P%@AP[4\PX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
   ```
-* **SIEM Verification:** Windows Defender intercepted the file drop. Wazuh instantly ingested the defense event, triggering Rule ID 61603 and exposing the precise file path and signature classification within the OpenSearch console.
+* **Verification:** Windows Defender intercepted the file. Wazuh ingested the defense event, triggered Rule ID 61603, and surfaced the file path and signature classification in OpenSearch.
 
 ## 9. Hardening & Future Enhancements
-* **Current Security Posture:** The central manager enforces strict ingress boundary protections using UFW. Telemetry endpoints transmit data over authenticated channels restricted by custom Windows Defender Firewall transport rules.
+* **Current Posture:** The manager enforces ingress boundaries with UFW. Endpoints transmit over authenticated channels restricted by Windows Defender Firewall rules.
 * **Future Roadmap:**
-  * [ ] Configure automated Active Response playbooks to dynamically block adversarial source IPs at the host layer upon reaching brute-force alert thresholds.
-  * [ ] Integrate centralized syslog ingestion for edge networking components, specifically focusing on OPNsense firewall routing structures.
+  * [ ] Configure Active Response playbooks to block source IPs at the host layer on brute-force thresholds.
+  * [ ] Integrate syslog ingestion for edge networking components (OPNsense).
 
 ---
 
