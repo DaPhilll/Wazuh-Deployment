@@ -1,0 +1,11 @@
+<!-- Custom tuning rule deployed to /var/ossec/etc/rules/local_rules.xml -->
+<!-- Suppresses routine SYSTEM-level service initializations that inflate ingestion volume under default rule 60107. -->
+<group name="windows,security_tuning,">
+  <!-- Override baseline rule 60107 for known service accounts -->
+  <rule id="100005" level="0">
+    <if_sid>60107</if_sid>
+    <field name="win.eventdata.subjectUserName">SYSTEM</field>
+    <field name="win.eventdata.parentProcessName">C:\\Windows\\System32\\services.exe</field>
+    <description>Tuning: Suppress routine SYSTEM-level service initializations to reduce ingestion volume.</description>
+  </rule>
+</group>

@@ -2,6 +2,17 @@
 
 # Centralized SIEM/XDR Engineering: Multi-Platform Telemetry Aggregation and Detection Engineering with Wazuh
 
+## Repository Structure
+```
+/scripts
+  deploy-agent.ps1
+  harden-manager.sh
+/rules
+  local_rules.xml
+LICENSE
+README.md
+```
+
 ## 1. Executive Summary & Objective
 * **Problem Statement:** Enterprise environments suffer from visibility gaps and alert fatigue when telemetry streams go untuned, making it hard to separate high-fidelity indicators of compromise from routine system activity.
 * **Solution Overview:** This project builds a full detection engineering loop: a central Wazuh (v4.11) management plane, automated endpoint telemetry forwarding across an isolated network, simulated adversary behavior, and custom rule overrides to reduce ingestion noise.
@@ -14,7 +25,7 @@
 ## 2. Architecture & Environment Topology
 The lab uses hardware-level virtualization with a discrete layer-2 broadcast domain to model an on-premises enterprise network. This same environment is reused across the related detection, SOAR, IDS, and vulnerability management projects.
 
-* **Deployment Environment:** Oracle VirtualBox
+* **Deployment Environment:** VMware Workstation Pro
 * **Network Segment:** `10.10.0.0/24` (bridged adapter, host-firewall restricted)
 * **Management Plane:** Ubuntu Server — `SRV-SOC01` (8 GB RAM, local indexing volume)
 * **Endpoint:** Windows 10 Enterprise — `WKSTN-01` (8 GB RAM)
@@ -44,7 +55,8 @@ The lab uses hardware-level virtualization with a discrete layer-2 broadcast dom
 
 ## 7. Implementation & Configuration
 
-### Headless Agent Deployment (PowerShell)
+### Headless Agent Deployment
+`scripts/deploy-agent.ps1`
 ```powershell
 # Retrieve the deployment package
 Invoke-WebRequest -Uri "https://packages.wazuh.com/4.11/windows/wazuh-agent-4.11-1.msi" -OutFile "wazuh-agent.msi"
@@ -56,7 +68,8 @@ msiexec /i "wazuh-agent.msi" /quiet SERVERIP="10.10.0.10" SERVERPORT="1514"
 Start-Service WazuhSvc
 ```
 
-### Custom Tuning Rule (`/var/ossec/etc/rules/local_rules.xml`)
+### Custom Tuning Rule
+`rules/local_rules.xml` (deployed to `/var/ossec/etc/rules/local_rules.xml`)
 ```xml
 <group name="windows,security_tuning,">
   <!-- Override baseline rule 60107 for known service accounts -->
@@ -69,7 +82,8 @@ Start-Service WazuhSvc
 </group>
 ```
 
-### Host Network Hardening (Ubuntu Management Plane)
+### Host Network Hardening
+`scripts/harden-manager.sh`
 ```bash
 sudo ufw enable
 sudo ufw allow 1514/udp     # Telemetry ingestion
@@ -101,6 +115,9 @@ sudo ufw allow 5601/tcp     # Web dashboard
 * **Future Roadmap:**
   * [ ] Configure Active Response playbooks to block source IPs at the host layer on brute-force thresholds.
   * [ ] Integrate syslog ingestion for edge networking components (OPNsense).
+
+## License
+MIT — see [LICENSE](./LICENSE).
 
 ---
 
