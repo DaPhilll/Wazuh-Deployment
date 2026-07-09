@@ -1,6 +1,6 @@
 [![Darreon Phillips Homepage](https://img.shields.io/badge/Darreon%20Phillips-Homepage-blue?style=for-the-badge&logo=github&logoColor=white)](https://github.com/DaPhilll)
 
-# Centralized SIEM/XDR Engineering: Multi-Platform Telemetry Aggregation and Detection Engineering with Wazuh
+# Centralized SIEM/XDR: Multi-Platform Telemetry Aggregation and Detection Engineering with Wazuh
 
 ## Repository Structure
 ```
@@ -23,7 +23,7 @@ README.md
   * Continuous vulnerability assessment and detection logic tuning.
 
 ## 2. Architecture & Environment Topology
-The lab uses hardware-level virtualization with a discrete layer-2 broadcast domain to model an on-premises enterprise network. This same environment is reused across the related detection, SOAR, IDS, and vulnerability management projects.
+The lab runs on VMware Workstation Pro, using a bridged network segment to model a small enterprise network. This same environment is reused across the related detection, SOAR, IDS, and vulnerability management projects.
 
 * **Deployment Environment:** VMware Workstation Pro
 * **Network Segment:** `10.10.0.0/24` (bridged adapter, host-firewall restricted)
@@ -33,7 +33,7 @@ The lab uses hardware-level virtualization with a discrete layer-2 broadcast dom
 * **SIEM/XDR Core:** Wazuh Manager & Indexer (v4.11) with OpenSearch Dashboards
 
 ## 3. Engineering Thought Process & Methodology
-* **Design Considerations:** A bridged adapter gives direct layer-2 line of sight between the endpoints and the Wazuh manager, producing authentic transport-layer interaction. Wazuh was selected as a unified platform for log aggregation, compliance tracking, and active endpoint detection.
+* **Design Considerations:** A bridged adapter puts the endpoints and the Wazuh manager on the same network segment, so agent traffic behaves the way it would on a physical LAN. Wazuh was selected as a unified platform for log aggregation, compliance tracking, and active endpoint detection.
 * **Technical Challenges & Resolution:**
   * **Challenge:** High-frequency routine process creation triggered default rule 60107, inflating log volume with false positives.
   * **Resolution:** Analyzed raw JSON telemetry to establish an operational baseline, then authored a custom override in `local_rules.xml` targeting parent process paths for known `SYSTEM` accounts, reducing baseline ingestion noise in the lab environment.
@@ -121,27 +121,27 @@ MIT — see [LICENSE](./LICENSE).
 
 ---
 
-## Appendix: Reference Analytics & Security Operations Visibility
+## Appendix: Deployment Screenshots
 
-### Security Event Monitoring Platform Overview
+### Wazuh Overview Dashboard
 ![Wazuh Dashboard](https://github.com/user-attachments/assets/dff76b31-b4c0-4298-94f7-7a9f7eed5835)
-*Figure 1: Central monitoring interface displaying real-time analytical event telemetry, mapped security alert thresholds, authentication traffic tracking, and system performance telemetry.*
+*Figure 1: The main Wazuh dashboard showing event volume, alert severity levels, authentication activity, and system performance.*
 
-### Central Telemetry Fleet Management Panel
+### Agent Management
 ![Wazuh Endpoints](https://github.com/user-attachments/assets/666d3c01-f6ac-45fe-8baf-6325337873d0)
-*Figure 2: Endpoint management asset inventory panel verifying active agent connection vectors, OS distribution footprints, cryptographic handshake validation, and live connection tracking status.*
+*Figure 2: The agent inventory showing connected endpoints, their operating systems, and current connection status.*
 
-### Granular Endpoint Audit Interface
+### Endpoint Detail View
 ![Wazuh Endpoint-1](https://github.com/user-attachments/assets/6bba044c-a186-40cd-8470-9ba0a3fe980c)
-*Figure 3: Deep-dive view of an isolated endpoint stream, aggregating distinct forensic system metadata, configuration baselines, compliance metrics, and active threat modules.*
+*Figure 3: Detail view for a single endpoint, including system metadata, configuration baseline, and compliance status.*
 
-### Continuous Vulnerability Tracking Dashboard
+### Vulnerability Detection
 ![Wazuh Endpoint-2](https://github.com/user-attachments/assets/5be64d54-cff8-4618-b5f5-f9f454bb880a)
-*Figure 4: Asset exposure matrix tracking identified software flaws and outstanding patch vulnerabilities on the host, automatically prioritized by systemic CVE severity classes.*
+*Figure 4: Vulnerability findings for the endpoint, prioritized by CVE severity and patch status.*
 
-### Unattended Telemetry Injection Execution
+### Silent Agent Installation
 ![Windows10-Wazuh Install](https://github.com/user-attachments/assets/50bc447c-509f-4e94-8fd5-6ee94e93f4a3)
-*Figure 5: Elevated command execution interface deploying the telemetry forwarding agent package quietly from the administrative plane while appending strict registration criteria.*
+*Figure 5: The silent agent install running from an elevated prompt on the Windows endpoint, with the manager IP and port passed as install parameters.*
 
 <br><br><br>
 [![Darreon Phillips Homepage](https://img.shields.io/badge/Darreon%20Phillips-Homepage-blue?style=for-the-badge&logo=github&logoColor=white)](https://github.com/DaPhilll)
