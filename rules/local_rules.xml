@@ -1,11 +1,19 @@
 <!-- Custom tuning rule deployed to /var/ossec/etc/rules/local_rules.xml -->
-<!-- Suppresses routine SYSTEM-level service initializations that inflate ingestion volume under default rule 60107. -->
+<!--
+  Parent rule 60107 in the Wazuh ruleset is "Failed attempt to perform a
+  privileged operation" (Windows Event ID 577 / 4673). SYSTEM services invoke
+  privileged operations as part of normal startup, which produces repetitive
+  low-value alerts. This override drops those specific events to level 0.
+
+  Note: Event 4673 exposes the calling process as win.eventdata.processName.
+  parentProcessName belongs to Event 4688 (process creation) and will not
+  match here.
+-->
 <group name="windows,security_tuning,">
-  <!-- Override baseline rule 60107 for known service accounts -->
   <rule id="100005" level="0">
     <if_sid>60107</if_sid>
     <field name="win.eventdata.subjectUserName">SYSTEM</field>
-    <field name="win.eventdata.parentProcessName">C:\\Windows\\System32\\services.exe</field>
-    <description>Tuning: Suppress routine SYSTEM-level service initializations to reduce ingestion volume.</description>
+    <field name="win.eventdata.processName">C:\\Windows\\System32\\services.exe</field>
+    <description>Tuning: Suppress routine SYSTEM-level privileged service calls to reduce ingestion volume.</description>
   </rule>
 </group>
