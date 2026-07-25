@@ -35,8 +35,8 @@ The lab runs on VMware Workstation Pro, using a bridged network segment to model
 ## 3. Engineering Thought Process & Methodology
 * **Design Considerations:** A bridged adapter puts the endpoints and the Wazuh manager on the same network segment, so agent traffic behaves the way it would on a physical LAN. Wazuh was selected as a unified platform for log aggregation, compliance tracking, and active endpoint detection.
 * **Technical Challenges & Resolution:**
-  * **Challenge:** High-frequency routine process creation triggered default rule 60107, inflating log volume with false positives.
-  * **Resolution:** Analyzed raw JSON telemetry to establish an operational baseline, then authored a custom override in `local_rules.xml` targeting parent process paths for known `SYSTEM` accounts, reducing baseline ingestion noise in the lab environment.
+  * **Challenge:** SYSTEM services invoke privileged operations routinely during startup, and each one triggered default rule 60107 ("Failed attempt to perform a privileged operation"), inflating log volume with low-value alerts.
+  * **Resolution:** Reviewed the raw JSON telemetry to establish a baseline of which processes generated the noise, then authored an override in `local_rules.xml` that drops those events to level 0 when the calling process is `services.exe` under the `SYSTEM` account.
 
 ## 4. Cyber Kill Chain & Threat Lifecycle Mapping
 * **Delivery:** Simulated malicious indicator delivery via download methods to validate host anti-malware telemetry capture.
@@ -46,7 +46,7 @@ The lab runs on VMware Workstation Pro, using a bridged network segment to model
 
 | Tactic | Technique ID | Technique Name | Detection Mechanism |
 | :--- | :--- | :--- | :--- |
-| **Credential Access** | T1110 | Brute Force | Aggregation of Windows Event ID 4625, correlated via Wazuh Rule ID 60122 (Level 5). |
+| **Credential Access** | T1110 | Brute Force | Windows Event ID 4625 matched by rule 60122, with repeated failures correlated by rule 60204 (Level 10). |
 | **Execution** | T1204.002 | Malicious File | Parsing Windows Defender event channels via Rule ID 61603 to expose payload paths. |
 | **Defense Evasion** | T1562.004 | Disable or Modify System Firewall | Stateful host firewalls (UFW, Windows Defender Firewall) enforced on port 1514. |
 
@@ -58,11 +58,15 @@ The lab runs on VMware Workstation Pro, using a bridged network segment to model
 ### Headless Agent Deployment
 `scripts/deploy-agent.ps1`
 ```powershell
-# Retrieve the deployment package
-Invoke-WebRequest -Uri "https://packages.wazuh.com/4.11/windows/wazuh-agent-4.11-1.msi" -OutFile "wazuh-agent.msi"
+$AgentVersion = "4.11.2-1"
+$ManagerIP    = "10.10.0.10"
 
-# Silent install with management plane parameters
-msiexec /i "wazuh-agent.msi" /quiet SERVERIP="10.10.0.10" SERVERPORT="1514"
+# Retrieve the deployment package
+Invoke-WebRequest -Uri "https://packages.wazuh.com/4.x/windows/wazuh-agent-$AgentVersion.msi" -OutFile "wazuh-agent.msi"
+
+# Silent install. WAZUH_MANAGER registers the agent against the manager;
+# without it the agent installs with no manager configured and never connects.
+msiexec.exe /i "wazuh-agent.msi" /q WAZUH_MANAGER="$ManagerIP" WAZUH_AGENT_NAME="WKSTN-01"
 
 # Start the agent service
 Start-Service WazuhSvc
@@ -70,14 +74,15 @@ Start-Service WazuhSvc
 
 ### Custom Tuning Rule
 `rules/local_rules.xml` (deployed to `/var/ossec/etc/rules/local_rules.xml`)
+
+Rule 60107 fires on Windows Event ID 577/4673, a failed attempt to perform a privileged operation. SYSTEM services trigger it routinely at startup, so this override silences that specific pattern without touching the parent rule.
 ```xml
 <group name="windows,security_tuning,">
-  <!-- Override baseline rule 60107 for known service accounts -->
   <rule id="100005" level="0">
     <if_sid>60107</if_sid>
     <field name="win.eventdata.subjectUserName">SYSTEM</field>
-    <field name="win.eventdata.parentProcessName">C:\\Windows\\System32\\services.exe</field>
-    <description>Tuning: Suppress routine SYSTEM-level service initializations to reduce ingestion volume.</description>
+    <field name="win.eventdata.processName">C:\\Windows\\System32\\services.exe</field>
+    <description>Tuning: Suppress routine SYSTEM-level privileged service calls to reduce ingestion volume.</description>
   </rule>
 </group>
 ```
@@ -86,12 +91,12 @@ Start-Service WazuhSvc
 `scripts/harden-manager.sh`
 ```bash
 sudo ufw enable
-sudo ufw allow 1514/udp     # Telemetry ingestion
-sudo ufw allow 1514/tcp     # Telemetry ingestion
-sudo ufw allow 1515/tcp     # Agent registration
-sudo ufw allow 55000/tcp    # REST API management
-sudo ufw allow 9200/tcp     # Indexer API
-sudo ufw allow 5601/tcp     # Web dashboard
+sudo ufw allow 1514/tcp     # Agent telemetry
+sudo ufw allow 1514/udp     # Agent telemetry
+sudo ufw allow 1515/tcp     # Agent enrollment
+sudo ufw allow 55000/tcp    # Wazuh server REST API
+sudo ufw allow 9200/tcp     # Wazuh indexer API
+sudo ufw allow 443/tcp      # Wazuh dashboard (HTTPS)
 ```
 
 ## 8. Operational Verification & Validation
@@ -101,7 +106,7 @@ sudo ufw allow 5601/tcp     # Web dashboard
   ```cmd
   net use \\localhost /user:fakeuser invalidpassword123
   ```
-* **Verification:** The manager correlated the burst of Event ID 4625 entries and escalated to a Level 5 alert under Rule ID 60122.
+* **Verification:** Each failed attempt matched rule 60122 ("Logon Failure - Unknown user or bad password") at level 5. The repeated failures within the correlation window then triggered rule 60204 ("Multiple Windows Logon Failures") at level 10, which is the alert that actually indicates brute-force activity rather than a single mistyped password.
 
 ### Use Case 2: Malicious Indicator Drop via EICAR (T1204.002)
 * **Simulation:** Wrote the standard EICAR anti-malware test string to local storage:
